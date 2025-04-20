@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Video Emotion Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2c2c3e);
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    .video-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    video {
+      border: 5px solid #444;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .controls {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    button {
+      background-color: #3a7bd5;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #295cab;
+    }
+    .graph-section {
+      margin-top: 2rem;
+    }
+    canvas {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .status {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 1rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Live Video Emotion Detection</h1>
+    <div class="video-wrapper">
+      <video id="video" autoplay muted></video>
+    </div>
+    <div class="controls">
+      <button onclick="startDetection()">Start Detection</button>
+    </div>
+    <div class="status" id="emotionStatus">Waiting for detection...</div>
+    <div class="graph-section">
+      <canvas id="emotionChart" width="600" height="300"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const emotionStatus = document.getElementById('emotionStatus');
+
+    // Access the webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(error => {
+        console.error("Error accessing webcam:", error);
+      });
+
+    const chartCtx = document.getElementById('emotionChart').getContext('2d');
+    const emotionChart = new Chart(chartCtx, {
+      type: 'bar',
+      data: {
+        labels: ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral'],
+        datasets: [{
+          label: 'Emotion Probability (%)',
+          data: [0, 0, 0, 0, 0, 0, 0],
+          backgroundColor: [
+            '#ff4c4c', '#8e44ad', '#f39c12',
+            '#2ecc71', '#3498db', '#e67e22', '#95a5a6'
+          ],
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 500 },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+
+    function updateChart(probabilities) {
+      const emotions = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral'];
+      emotionChart.data.datasets[0].data = emotions.map(e => probabilities[e] || 0);
+      emotionChart.update();
+    }
+
+    function startDetection() {
+      // Connect to the server using SSE
+      const eventSource = new EventSource("/live_emotion_data");
+
+      eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        if (data.error) {
+          emotionStatus.textContent = "Error: " + data.error;
+        } else {
+          emotionStatus.textContent = "Detected Emotion: " + data.emotion;
+          updateChart(data.probabilities);
+        }
+      };
+
+      eventSource.onerror = function() {
+        emotionStatus.textContent = "Connection lost or server error.";
+        eventSource.close();
+      };
+    }
+  </script>
+</body>
+</html>

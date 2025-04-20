@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zidio - AI Emotion Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #d8f3dc, #b7e4c7);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border-radius: 15px;
+        }
+        .zidio-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg p-5">
+                <h2 class="text-center mb-4">
+                    <span class="zidio-icon">🧠</span>Zidio AI-Powered Emotion Task Optimizer
+                </h2>
+                <form method="POST">
+                    <div class="mb-3">
+                        <textarea name="user_input" class="form-control" rows="4" placeholder="Type how you're feeling..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">🧩 Analyze Mood</button>
+                </form>
+
+                {% if emotion %}
+                    <div class="mt-4 text-center">
+                        <h4>Detected Emotion: <span class="text-primary">{{ emotion }} {{ emoji }}</span></h4>
+                        <p>Confidence Score: <strong>{{ score }}</strong></p>
+                        <div class="alert alert-info mt-3" role="alert">
+                            <strong>Task Suggestion:</strong> {{ suggestion }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if chart_url %}
+                <img src="{{ url_for('static', filename=chart_url) }}" alt="Emotion Chart">
+            {% endif %}
+            
+            </div>
+        </div>
+        <div class="text-end mb-3">
+            <a href="/dashboard" class="btn btn-outline-dark">📈 View Dashboard</a>
+        </div>
+        <audio id="success-sound" src="{{ url_for('static', filename='sounds/success.mp3') }}"></audio>
+<div id="emotion-result" class="card animated fadeIn">
+  <h2>{{ emotion }} {{ emoji }}</h2>
+  <p>{{ suggestion }}</p>
+</div>
+
+  
+    </div>
+</div>
+</body>
+</html

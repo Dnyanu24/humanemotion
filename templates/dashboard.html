@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emotion Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100 font-sans">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white p-6 shadow-xl">
+      <div class="text-center mb-10">
+        <div class="h-16 w-16 mx-auto bg-gray-300 rounded-full"></div>
+        <h2 class="mt-4 text-xl font-semibold">Welcome, {{ user.username }}</h2>
+        <p class="text-gray-500">{{ user.email }}</p>
+      </div>
+      <nav>
+        <ul>
+          <li class="mb-4 bg-blue-100 text-blue-700 font-bold rounded-lg px-2 py-1">Dashboard</li>
+          <li class="mb-4 text-gray-600">Admin</li>
+          <li>
+            <a href="{{ url_for('voice_analysis') }}">Voice Analysis</a>
+          </li>
+          <br />
+          <li><a href="/video_analysis" class="mb-4 text-gray-600">Video Analysis</a></li>
+          <br />
+          <li class="mb-4 text-gray-600">Messages</li>
+          <li class="mb-4 text-gray-600">Settings</li>
+        </ul>
+      </nav>
+      <div class="absolute bottom-6">
+        <a href="{{ url_for('logout') }}">
+          <button class="bg-red-100 text-red-500 py-2 px-4 rounded-lg">Logout</button>
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Emotion Analytics Dashboard</h1>
+        <a href="/" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Back to Analyzer</a>
+      </div>
+
+      <!-- Live Emotion Chart -->
+      <div class="card transparent-glass mb-8">
+        <h2 class="text-xl font-semibold">Live Emotion Chart</h2>
+        <canvas id="emotionChart"></canvas>
+      </div>
+
+      <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+
+      <!-- Emotion Overview Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {% for emotion, percentage, color in [('Happy', 35, 'green'), ('Sad', 25, 'blue'), ('Angry', 15, 'red'), ('Surprised', 25, 'yellow')] %}
+        <div class="bg-white p-4 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300">
+          <h2 class="text-lg font-semibold">{{ emotion }}</h2>
+          <p class="text-3xl font-bold text-{{ color }}-500">{{ percentage }}%</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Graphs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-md">
+          <h3 class="text-lg font-semibold mb-4">Emotion Over Time</h3>
+          <canvas id="lineChart"></canvas>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-md">
+          <h3 class="text-lg font-semibold mb-4">Emotion Radar</h3>
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Entries Table -->
+      <div class="mt-8 bg-white p-6 rounded-2xl shadow-md">
+        <h3 class="text-lg font-semibold mb-4">Recent Entries</h3>
+        <table class="w-full text-center table-auto">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="py-2">Time</th>
+              <th>User Input</th>
+              <th>Emotion</th>
+              <th>Score</th>
+              <th>User</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in recent_entries %}
+            <tr>
+              <td>{{ entry.timestamp }}</td>
+              <td>{{ entry.user_input }}</td>
+              <td>{{ entry.emotion }}</td>
+              <td>{{ entry.score }}</td>
+              <td>
+                <img src="{{ entry.user.profile_picture or url_for('static', filename='default-avatar.png') }}" alt="{{ entry.user.username }}" class="h-8 w-8 rounded-full inline-block" />
+                {{ entry.user.username }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js Charts -->
+  <script>
+    const ctxLine = document.getElementById('lineChart');
+    new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Happiness Score',
+          data: [70, 65, 75, 80, 85, 60, 90],
+          borderColor: '#34D399',
+          backgroundColor: 'rgba(52, 211, 153, 0.2)',
+          tension: 0.4
+        }]
+      }
+    });
+
+    const ctxRadar = document.getElementById('radarChart');
+    new Chart(ctxRadar, {
+      type: 'radar',
+      data: {
+        labels: ['Happy', 'Sad', 'Angry', 'Fear', 'Surprise', 'Neutral'],
+        datasets: [{
+          label: 'Emotion Spread',
+          data: [65, 40, 20, 25, 45, 30],
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+          borderColor: '#3B82F6'
+        }]
+      }
+    });
+  </script>
+</body>
+
+</html>
