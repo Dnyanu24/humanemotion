@@ -16,6 +16,10 @@ import json
 from utils.graph_plotter import create_emotion_graph
 from voice_emotion import detect_emotion_from_voice
 from flask_login import current_user
+from collections import Counter
+import seaborn as sns
+import io
+from flask import send_file
 
 # Flask App Setup
 app = Flask(__name__)
